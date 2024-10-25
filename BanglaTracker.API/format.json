@@ -1,0 +1,47 @@
+///src
+//    /Core
+//        /Entities
+//            - Book.cs
+//            - User.cs
+//        /Interfaces
+//            - IBookRepository.cs
+//            - IUnitOfWork.cs
+//        /Exceptions
+//            - DomainException.cs
+//        /ValueObjects
+//            - ISBN.cs
+//    /Application
+//        /DTOs
+//            - BookDto.cs
+//        /Interfaces
+//            - IBookService.cs
+//        /Services
+//            - BookService.cs
+//        /Exceptions
+//            - NotFoundException.cs
+//        /Validation
+//            - BookValidator.cs
+//    /Infrastructure
+//        /Data
+//            /Repositories
+//                - BookRepository.cs
+//            - ApplicationDbContext.cs
+//            - UnitOfWork.cs
+//        /Services
+//            - ExternalBookApiService.cs
+//    /WebAPI
+//        /Controllers
+//            - BooksController.cs
+//        /Middleware
+//            - ExceptionHandlingMiddleware.cs
+//        /ViewModels
+//            - CreateBookViewModel.cs
+//            - UpdateBookViewModel.cs
+//        - Startup.cs
+//        - Program.cs
+///tests
+//    /UnitTests
+//        - BookServiceTests.cs
+//    /IntegrationTests
+//        - BookApiTests.cs
+
