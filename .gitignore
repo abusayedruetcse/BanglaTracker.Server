@@ -1,0 +1,13 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/src/.vs
+/src/BanglaTracker.Infrastructure/obj/
+/src/BanglaTracker.Infrastructure/bin/
+/src/BanglaTracker.Core/bin/
+/src/BanglaTracker.Core/obj/
+/src/BanglaTracker.BLL/bin/
+/src/BanglaTracker.BLL/obj/
+/src/BanglaTracker.API/bin/
+/src/BanglaTracker.API/obj/
