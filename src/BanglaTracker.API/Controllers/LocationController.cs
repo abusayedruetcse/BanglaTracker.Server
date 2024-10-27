@@ -7,6 +7,13 @@ namespace BanglaTracker.API.Controllers
     [Route("api/[controller]")]
     public class LocationController : ControllerBase
     {
+        private readonly ILogger<LocationController> _logger;
+
+        public LocationController(ILogger<LocationController> logger)
+        {
+            _logger = logger;
+        }
+
         // POST api/location
         [HttpPost]
         public IActionResult PostLocation([FromBody] LocationData locationData)
@@ -20,7 +27,7 @@ namespace BanglaTracker.API.Controllers
             // For example:
             // _locationService.SaveLocation(locationData);
 
-            Console.WriteLine($"Received location: Lat={locationData.Latitude}, Lon={locationData.Longitude}, Timestamp={locationData.Timestamp}");
+            _logger.LogInformation($"Received location: Lat={locationData.Latitude}, Lon={locationData.Longitude}, Timestamp={locationData.Timestamp}");
 
             // Return a success response
             return Ok(new { Message = "Location received successfully" });
