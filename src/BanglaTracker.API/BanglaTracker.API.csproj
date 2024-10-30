@@ -15,7 +15,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\BanglaTracker.BLL\BanglaTracker.BLL.csproj" />
     <ProjectReference Include="..\BanglaTracker.Core\BanglaTracker.Core.csproj" />
+    <ProjectReference Include="..\BanglaTracker.Infrastructure\BanglaTracker.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
