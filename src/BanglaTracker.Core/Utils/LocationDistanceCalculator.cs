@@ -30,14 +30,4 @@
             return degrees * Math.PI / 180;
         }
     }
-
-    public class TestDistance
-    {
-        double lat1 = 40.748817; // Latitude for location 1
-        double lon1 = -73.985428; // Longitude for location 1
-        double lat2 = 34.052235; // Latitude for location 2
-        double lon2 = -118.243683; // Longitude for location 2
-
-        //double distanceKm = new LocationDistanceCalculator().CalculateDistance(lat1, lon1, lat2, lon2, 'K');        
-    }
 }

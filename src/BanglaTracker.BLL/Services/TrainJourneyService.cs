@@ -39,60 +39,86 @@ namespace BanglaTracker.BLL.Services
         }
 
         #region JourneyProgressCalculator
+
+        /// <summary>
+        /// Updates the journey progress for the train, calculating distance, speed, and 
+        /// updating progress percentage and estimated arrival times for stations.
+        /// </summary>
         public void UpdateJourneyProgress(TrainJourney journey)
         {
-            if (journey.CurrentStationIndex + 1 == journey.Stations.Count)
+            if (IsAtDestination(journey))
             {
-                // skip if the train is at the destination station. 
-                // TODO: remove this journey from timer
+                // Train has reached the destination, so stop updating
+                // TODO: Remove this journey from the timer or scheduling service
                 return;
             }
 
+            // Increment total travel time by the configured timer interval
+            journey.TotalTravelTime += TimeSpan.FromMinutes(5);  // TODO: Move interval time to configuration
+
+            // Step 1: Update current distance from the last station and current speed
             UpdateDistanceAndCurrentVelocity(journey);
+
+            if (IsTrainEnteringStationArea(journey))
+            {
+                // If the train is close to a station, treat it as "stopped" and exit
+                return;
+            }
+
+            // Step 2: Update the journey progress as a percentage and possible reach times
             UpdateJourneyProgressPercent(journey);
             UpdatePossibleReachTime(journey);
 
-            // started to run after taking a break
-            if (journey.DistanceFromLastStation > 0)
+            // Step 3: If close to a station, record the stop
+            if (IsTrainReachingStation(journey))
             {
-                UpdateForStartJourney(journey);
+                StopJourneyAtStation(journey);
             }
 
-            if (journey.JourneyProgressPercent >= 100)
+            // Step 4: If the train has moved away from the station, update for starting journey
+            if (HasTrainMovedAwayFromStation(journey))
             {
-                UpdateForStopAtStation(journey);
+                StartJourneyFromStation(journey);
             }
-            
-            journey.TotalTravelTime = journey.TotalTravelTime + TimeSpan.FromMinutes(5);    // TODO: move this inverval time in config file. use same value in background timer
-        }
-        
+
+        }        
+
+        /// <summary>
+        /// Calculates and updates the train’s current distance from the last station and speed.
+        /// </summary>
         private void UpdateDistanceAndCurrentVelocity(TrainJourney journey)
         {
-            /* Velocity = (distance2 - distance1) / (t2 - t1) */
-
-            var oldDistanceValue = journey.DistanceFromLastStation;
-
+            var previousDistance = journey.DistanceFromLastStation;
             journey.DistanceFromLastStation = CalculateDistance(journey);
 
-            journey.CurrentSpeed = (journey.DistanceFromLastStation - oldDistanceValue) / 5; // TODO: move this inverval time in config file. use same value in background timer.
+            // Update speed based on distance covered over the timer interval
+            journey.CurrentSpeed = (journey.DistanceFromLastStation - previousDistance) / 5; // TODO: Move interval time to config
         }
 
+        /// <summary>
+        /// Updates the journey progress as a percentage of the distance covered toward the next station.
+        /// </summary>
         private void UpdateJourneyProgressPercent(TrainJourney journey)
         {
             var nextStationDistance = journey.Stations[journey.CurrentStationIndex + 1].Distance;
-            journey.JourneyProgressPercent = (int)((nextStationDistance - journey.DistanceFromLastStation) * 100 / nextStationDistance);
+            journey.JourneyProgressPercent = 100 - (int)((nextStationDistance - journey.DistanceFromLastStation) * 100 / nextStationDistance);
         }
 
+        /// <summary>
+        /// Updates estimated arrival times for the next station and subsequent stations based on current speed.
+        /// </summary>
         private void UpdatePossibleReachTime(TrainJourney journey)
         {
             var nextStationDistance = journey.Stations[journey.CurrentStationIndex + 1].Distance;
 
             if (journey.CurrentSpeed > 0)
             {
-                var possibleReachTime = (nextStationDistance - journey.DistanceFromLastStation) / journey.CurrentSpeed;
-                journey.Stations[journey.CurrentStationIndex + 1].EstimatedArrivalTime = TimeSpan.FromMinutes(possibleReachTime);
+                // Estimate time to reach the next station based on current speed
+                var estimatedArrivalInMinutes = (nextStationDistance - journey.DistanceFromLastStation) / journey.CurrentSpeed;
+                journey.Stations[journey.CurrentStationIndex + 1].EstimatedArrivalTime = TimeSpan.FromMinutes(estimatedArrivalInMinutes);
             }
 
+            // Update subsequent stations’ estimated arrival times based on averages
             for (int i = journey.CurrentStationIndex + 2; i < journey.Stations.Count; i++)
             {
                 journey.Stations[i].EstimatedArrivalTime =
@@ -100,76 +126,108 @@ namespace BanglaTracker.BLL.Services
             }
         }
 
+        /// <summary>
+        /// Calculates the distance between the current train location and the last station location.
+        /// </summary>
         private double CalculateDistance(TrainJourney journey)
         {
-            // Actual distance calculation logic using current and last station location data
             var source = journey.Stations[journey.CurrentStationIndex].Location;
             var destination = journey.CurrentLocation;
-
-            double distanceKm = LocationDistanceCalculator.CalculateDistance(source.Latitude, source.Longitude, destination.Latitude, destination.Longitude, 'K');
-
-            return distanceKm; // Placeholder for distance calculation
+            return LocationDistanceCalculator.CalculateDistance(source.Latitude, source.Longitude, destination.Latitude, destination.Longitude, 'K');
         }
-        
-        private void UpdateForStartJourney(TrainJourney journey)
-        {
-            var currentStation = journey.Stations[journey.CurrentStationIndex];
 
-            // Check if the train is stationary (e.g., paused at a station) and ready to log break time
+        /// <summary>
+        /// Starts the journey after a stop, calculating any break time spent at the station.
+        /// </summary>
+        private void StartJourneyFromStation(TrainJourney journey)
+        {
             if (journey.IsAtStation)
             {
-                // Calculate the time spent as a break at the current station
+                var currentStation = journey.Stations[journey.CurrentStationIndex];
                 var breakTime = journey.TotalTravelTime - journey.LastRecordedTravelTime;
 
-                // Set the actual break time for the current station
+                // Update break time records
                 currentStation.ActualBreakTime = breakTime;
-
-                // Update the average break time using the new break time
                 currentStation.AverageBreakTime =
                     currentStation.AverageBreakTime == TimeSpan.Zero
                     ? breakTime
                     : (currentStation.AverageBreakTime * 9 + breakTime) / 10;
 
-                // Update the last recorded travel time to mark this break
                 journey.LastRecordedTravelTime = journey.TotalTravelTime;
-
-                // Reset the IsAtStation flag, as break time has now been logged
                 journey.IsAtStation = false;
             }
         }
 
-        private void UpdateForStopAtStation(TrainJourney journey)
+        /// <summary>
+        /// Records a stop at a station, updating the actual and average travel times.
+        /// </summary>
+        private void StopJourneyAtStation(TrainJourney journey)
         {
-            // Only update travel time if we've reached the next station (i.e., the journey progress is complete)
-            if (journey.JourneyProgressPercent == 100)
-            {
-                var currentStation = journey.Stations[journey.CurrentStationIndex + 1];
+            var currentStation = journey.Stations[journey.CurrentStationIndex + 1];
+            var travelTime = journey.TotalTravelTime - journey.LastRecordedTravelTime;
 
-                // Calculate travel time for reaching the current station
-                var travelTime = journey.TotalTravelTime - journey.LastRecordedTravelTime;
+            // Update travel time records for the station
+            currentStation.ActualTravelTime = travelTime;
+            currentStation.AverageTravelTime =
+                currentStation.AverageTravelTime == TimeSpan.Zero
+                ? travelTime
+                : (currentStation.AverageTravelTime * 9 + travelTime) / 10;
 
-                // Update current station's actual travel time
-                currentStation.ActualTravelTime = travelTime;
+            journey.LastRecordedTravelTime = journey.TotalTravelTime;
 
-                // Calculate a new average travel time, or set it for the first time if it's not already set
-                currentStation.AverageTravelTime =
-                    currentStation.AverageTravelTime == TimeSpan.Zero
-                    ? travelTime
-                    : (currentStation.AverageTravelTime * 9 + travelTime) / 10;
+            // Reset journey progress for the next segment
+            journey.CurrentStationIndex++;
+            journey.JourneyProgressPercent = 0;
+            journey.DistanceFromLastStation = 0;
+            journey.CurrentSpeed = 0;
+            journey.IsAtStation = true;
+        }
 
-                // Update last recorded travel time for the next leg of the journey
-                journey.LastRecordedTravelTime = journey.TotalTravelTime;
+        /// <summary>
+        /// Checks if the train has reached its final destination.
+        /// </summary>
+        private bool IsAtDestination(TrainJourney journey)
+        {
+            return journey.CurrentStationIndex + 1 == journey.Stations.Count;
+        }
 
-                // Reset journey progress for the next segment
-                journey.CurrentStationIndex++;
-                journey.JourneyProgressPercent = 0;
-                journey.DistanceFromLastStation = 0;
-                journey.CurrentSpeed = 0;
-                journey.IsAtStation = true;                
-            }
+        /// <summary>
+        /// Checks if the train is entering the radius of the current station (e.g., within 0.5 km).
+        /// </summary>
+        private bool IsTrainEnteringStationArea(TrainJourney journey)
+        {
+            var distanceToStation = journey.DistanceFromLastStation;
+            var stationRadiusThreshold = 0.5; // TODO: Move this threshold to configuration
+
+            return distanceToStation < stationRadiusThreshold ||
+                   (journey.Stations[journey.CurrentStationIndex].Distance - distanceToStation < stationRadiusThreshold 
+                    && journey.IsAtStation);
+        }
+
+        /// <summary>
+        /// Checks if the train is close enough to the next station to be considered as reaching it.
+        /// </summary>
+        private bool IsTrainReachingStation(TrainJourney journey)
+        {
+            var distanceToNextStation = journey.Stations[journey.CurrentStationIndex].Distance - journey.DistanceFromLastStation;
+            var stationReachThreshold = 0.5; // TODO: Move this threshold to configuration
+
+            return distanceToNextStation < stationReachThreshold && !journey.IsAtStation;
+        }
+
+        /// <summary>
+        /// Checks if the train has moved away from the current station’s radius.
+        /// </summary>
+        private bool HasTrainMovedAwayFromStation(TrainJourney journey)
+        {
+            var movedAwayThreshold = 0.5; // TODO: Move this threshold to configuration
+
+            return journey.DistanceFromLastStation > movedAwayThreshold;
         }
 
         #endregion JourneyProgressCalculator
+
+
     }
 
 }
