@@ -26,8 +26,9 @@ namespace BanglaTracker.API.Controllers
         [HttpGet("{trainId}/metrics")]
         public async Task<ActionResult<TrainMetricsDto>> GetTrainMetrics(int trainId)
         {
-            var metrics = await _trainJourneyService.CalculateMetricsAsync(trainId);
-            return Ok(metrics);
+            //var metrics = await _trainJourneyService.CalculateMetricsAsync(trainId);
+            //return Ok(metrics);
+            return Ok();
         }
     }
 

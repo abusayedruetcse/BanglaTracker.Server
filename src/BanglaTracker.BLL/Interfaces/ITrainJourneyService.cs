@@ -11,6 +11,6 @@ namespace BanglaTracker.BLL.Interfaces
     public interface ITrainJourneyService
     {
         Task<TrainJourney> GetJourneyAsync(int trainId);
-        Task<TrainMetricsDto> CalculateMetricsAsync(int trainId);
+        Task CalculateMetricsAsync(int trainId);
     }
 }
