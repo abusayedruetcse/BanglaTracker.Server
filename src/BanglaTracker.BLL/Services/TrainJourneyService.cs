@@ -235,7 +235,24 @@ namespace BanglaTracker.BLL.Services
 
         #endregion JourneyProgressCalculator
 
-        public async Task InitializeJourneyStartAsync(
+        public async Task<(bool isAuthorized, string message)> StartJourneyAsync(
+            int journeyId,             
+            int stationIndex,
+            string sensorNumber,
+            string TrainNumber)
+        {
+            // TODO: Apply validaton here.
+            //var isAuthorized = await _authService.IsUserAuthorizedToStartJourneyAsync(userId);
+            //if (!isAuthorized)
+            //{
+            //    return (false, "User is not authorized to start this journey.");
+            //}
+
+            await InitializeJourneyStartAsync(journeyId, stationIndex);
+            return (true, "Journey started successfully.");
+        }
+
+        private async Task InitializeJourneyStartAsync(
             int journeyId,
             int stationIndex)
         {
@@ -246,12 +263,21 @@ namespace BanglaTracker.BLL.Services
                 throw new InvalidOperationException($"Journey with ID {journeyId} not found.");
             }
 
-            // Assuming JourneyProgress includes fields like CurrentStationIndex and JourneyProgressPercent
+            // Assuming JourneyProgress includes fields like CurrentStationIndex
             journey.CurrentStationIndex = stationIndex;
+            
+            // Considering that sensor is at the station now,
+            // Need to calculate the arrival time for the next station, before starting the journey from station.
+            // EstimatedTime(1) = AverageBreakTime(0) + AverageTravelTime(1)
+            // Here, ignoring AverageBreakTime(0) (to mitigate the risk)
+            journey.Stations[stationIndex + 1].EstimatedArrivalTime = journey.Stations[stationIndex + 1].AverageTravelTime;
 
             await _repository.UpdateAsync(journey);
 
             await UpdateJourneyStatusAsync(journeyId, JourneyStatus.InProgress);
+
+            // TODO: update sensorNumber in Tracking table.
+            // Unique user at a time with current index (Activate button)
 
             await _repository.SaveChangesAsync();
         }
