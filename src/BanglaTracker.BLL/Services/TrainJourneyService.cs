@@ -1,6 +1,7 @@
 ﻿using BanglaTracker.BLL.DTOs;
 using BanglaTracker.BLL.Interfaces;
 using BanglaTracker.Core.Entities;
+using BanglaTracker.Core.Enums;
 using BanglaTracker.Core.Interfaces;
 using BanglaTracker.Core.Utils;
 
@@ -9,16 +10,26 @@ namespace BanglaTracker.BLL.Services
     public class TrainJourneyService : ITrainJourneyService
     {
         private readonly IRepository<TrainJourney> _repository;
+        private readonly ITrainJourneyRepository _trainJourneyRepository;
 
-        public TrainJourneyService(IRepository<TrainJourney> repository)
+        public TrainJourneyService(
+            IRepository<TrainJourney> repository, 
+            ITrainJourneyRepository trainJourneyRepository)
         {
             _repository = repository;
+            _trainJourneyRepository = trainJourneyRepository;
         }
 
         public async Task<TrainJourney> GetJourneyAsync(int trainId)
         {
             // Fetch the train journey data
             return await _repository.GetByIdAsync(trainId);
+        }
+
+        public async Task<List<int>> GetJourneyIdsByStatusAsync(JourneyStatus journeyStatus)
+        {
+            // Fetch the train journey data
+            return await _trainJourneyRepository.FetchJourneyIdsByStatusAsync(journeyStatus);
         }
 
         public async Task CalculateMetricsAsync(int trainId)
@@ -29,6 +40,11 @@ namespace BanglaTracker.BLL.Services
             {
                 Console.WriteLine("Journey is not available");
                 return;
+            }
+
+            if (IsAtDestination(journey))
+            {
+                await _trainJourneyRepository.UpdateJourneyStatusAsync(journey.Id, JourneyStatus.Completed);
             }
 
             UpdateJourneyProgress(journey);
@@ -46,13 +62,6 @@ namespace BanglaTracker.BLL.Services
         /// </summary>
         public void UpdateJourneyProgress(TrainJourney journey)
         {
-            if (IsAtDestination(journey))
-            {
-                // Train has reached the destination, so stop updating
-                // TODO: Remove this journey from the timer or scheduling service
-                return;
-            }
-
             // Increment total travel time by the configured timer interval
             journey.TotalTravelTime += TimeSpan.FromMinutes(5);  // TODO: Move interval time to configuration
 
@@ -80,7 +89,6 @@ namespace BanglaTracker.BLL.Services
             {
                 StartJourneyFromStation(journey);
             }
-
         }        
 
         /// <summary>
@@ -188,7 +196,7 @@ namespace BanglaTracker.BLL.Services
         /// </summary>
         private bool IsAtDestination(TrainJourney journey)
         {
-            return journey.CurrentStationIndex + 1 == journey.Stations.Count;
+            return journey.CurrentStationIndex + 1 >= journey.Stations.Count;
         }
 
         /// <summary>

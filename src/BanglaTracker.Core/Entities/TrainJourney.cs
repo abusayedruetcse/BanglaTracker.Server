@@ -2,7 +2,7 @@
 {
     public class TrainJourney
     {
-        public int TrainId { get; set; }
+        public int Id { get; set; }
         public List<Station> Stations { get; set; } = new List<Station>();
         public TimeSpan TotalTravelTime { get; set; } // Total time taken for the journey
         public TimeSpan LastRecordedTravelTime { get; set; }  // Last recorded travel time to calculate intervals between updates        
