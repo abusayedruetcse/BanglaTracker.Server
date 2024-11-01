@@ -1,5 +1,6 @@
 ﻿using BanglaTracker.BLL.DTOs;
 using BanglaTracker.Core.Entities;
+using BanglaTracker.Core.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,10 @@ namespace BanglaTracker.BLL.Interfaces
     public interface ITrainJourneyService
     {
         Task<TrainJourney> GetJourneyAsync(int trainId);
+
         Task CalculateMetricsAsync(int trainId);
+
+        Task<List<int>> GetJourneyIdsByStatusAsync(
+            JourneyStatus journeyStatus);
     }
 }

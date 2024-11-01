@@ -12,6 +12,7 @@ namespace BanglaTracker.Infrastructure.Data
 
         public DbSet<LocationData> LocationDatas { get; set; }
         public DbSet<TrainJourney> TrainJourneys { get; set; }
+        public DbSet<TrainJourneyTracking> TrainJourneyTrackings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -19,7 +20,10 @@ namespace BanglaTracker.Infrastructure.Data
                 .HasKey(ld => ld.Id); // Set the primary key
 
             modelBuilder.Entity<TrainJourney>()
-                .HasKey(tj => tj.TrainId);
+                .HasKey(tj => tj.Id);
+
+            modelBuilder.Entity<TrainJourneyTracking>()
+                .HasKey(tjt => tjt.Id);
         }
     }
 }
