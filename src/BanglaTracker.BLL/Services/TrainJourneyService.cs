@@ -10,14 +10,14 @@ namespace BanglaTracker.BLL.Services
     public class TrainJourneyService : ITrainJourneyService
     {
         private readonly IRepository<TrainJourney> _repository;
-        private readonly ITrainJourneyRepository _trainJourneyRepository;
+        private readonly ITrainJourneyTrackingRepository _trainJourneyTrackingRepository;
 
         public TrainJourneyService(
-            IRepository<TrainJourney> repository, 
-            ITrainJourneyRepository trainJourneyRepository)
+            IRepository<TrainJourney> repository,
+            ITrainJourneyTrackingRepository trainJourneyTrackingRepository)
         {
             _repository = repository;
-            _trainJourneyRepository = trainJourneyRepository;
+            _trainJourneyTrackingRepository = trainJourneyTrackingRepository;
         }
 
         public async Task<TrainJourney> GetJourneyAsync(int trainId)
@@ -29,7 +29,7 @@ namespace BanglaTracker.BLL.Services
         public async Task<List<int>> GetJourneyIdsByStatusAsync(JourneyStatus journeyStatus)
         {
             // Fetch the train journey data
-            return await _trainJourneyRepository.FetchJourneyIdsByStatusAsync(journeyStatus);
+            return await _trainJourneyTrackingRepository.FetchJourneyIdsByStatusAsync(journeyStatus);
         }
 
         public async Task CalculateMetricsAsync(int trainId)
@@ -44,7 +44,7 @@ namespace BanglaTracker.BLL.Services
 
             if (IsAtDestination(journey))
             {
-                await _trainJourneyRepository.UpdateJourneyStatusAsync(journey.Id, JourneyStatus.Completed);
+                await UpdateJourneyStatusAsync(journey.Id, JourneyStatus.Completed);
             }
 
             UpdateJourneyProgress(journey);
@@ -116,11 +116,11 @@ namespace BanglaTracker.BLL.Services
         /// Updates estimated arrival times for the next station and subsequent stations based on current speed.
         /// </summary>
         private void UpdatePossibleReachTime(TrainJourney journey)
-        {
-            var nextStationDistance = journey.Stations[journey.CurrentStationIndex + 1].Distance;
-
+        {           
             if (journey.CurrentSpeed > 0)
             {
+                var nextStationDistance = journey.Stations[journey.CurrentStationIndex + 1].Distance;
+
                 // Estimate time to reach the next station based on current speed
                 var estimatedArrivalInMinutes = (nextStationDistance - journey.DistanceFromLastStation) / journey.CurrentSpeed;
                 journey.Stations[journey.CurrentStationIndex + 1].EstimatedArrivalTime = TimeSpan.FromMinutes(estimatedArrivalInMinutes);
@@ -235,7 +235,69 @@ namespace BanglaTracker.BLL.Services
 
         #endregion JourneyProgressCalculator
 
+        public async Task<(bool isAuthorized, string message)> StartJourneyAsync(
+            int journeyId,             
+            int stationIndex,
+            string sensorNumber,
+            string TrainNumber)
+        {
+            // TODO: Apply validaton here.
+            //var isAuthorized = await _authService.IsUserAuthorizedToStartJourneyAsync(userId);
+            //if (!isAuthorized)
+            //{
+            //    return (false, "User is not authorized to start this journey.");
+            //}
 
+            await InitializeJourneyStartAsync(journeyId, stationIndex);
+            return (true, "Journey started successfully.");
+        }
+
+        private async Task InitializeJourneyStartAsync(
+            int journeyId,
+            int stationIndex)
+        {
+            var journey = await _repository.GetByIdAsync(journeyId);
+
+            if (journey == null)
+            {
+                throw new InvalidOperationException($"Journey with ID {journeyId} not found.");
+            }
+
+            // Assuming JourneyProgress includes fields like CurrentStationIndex
+            journey.CurrentStationIndex = stationIndex;
+            
+            // Considering that sensor is at the station now,
+            // Need to calculate the arrival time for the next station, before starting the journey from station.
+            // EstimatedTime(1) = AverageBreakTime(0) + AverageTravelTime(1)
+            // Here, ignoring AverageBreakTime(0) (to mitigate the risk)
+            journey.Stations[stationIndex + 1].EstimatedArrivalTime = journey.Stations[stationIndex + 1].AverageTravelTime;
+
+            await _repository.UpdateAsync(journey);
+
+            await UpdateJourneyStatusAsync(journeyId, JourneyStatus.InProgress);
+
+            // TODO: update sensorNumber in Tracking table.
+            // Unique user at a time with current index (Activate button)
+
+            await _repository.SaveChangesAsync();
+        }
+
+        private async Task UpdateJourneyStatusAsync(
+            int journeyId,
+            JourneyStatus journeyStatus)
+        {
+            var journeyTracking = await _trainJourneyTrackingRepository.GetJourneyTrackingByJourneyIdAsync(journeyId);
+
+            if (journeyTracking == null)
+            {
+                throw new InvalidOperationException($"Journey with ID {journeyId} not found.");
+            }
+
+            journeyTracking.Status = journeyStatus;
+            journeyTracking.ModifyDateTime = DateTime.UtcNow;
+
+            await _trainJourneyTrackingRepository.UpdateAsync(journeyTracking);
+        }
     }
 
 }

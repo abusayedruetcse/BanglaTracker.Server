@@ -16,6 +16,19 @@ namespace BanglaTracker.API.Controllers
             _trainJourneyService = trainJourneyService;
         }
 
+        [HttpPost("{trainId}/start")]
+        public async Task<IActionResult> StartJourney(int trainId, [FromBody] int userId)
+        {
+            var (isAuthorized, message) = await _trainJourneyService.StartJourneyAsync(trainId, 1, "abc", "xyz");
+
+            if (!isAuthorized)
+            {
+                return Unauthorized(new { message });
+            }
+
+            return Ok(new { message });
+        }
+
         [HttpGet("{trainId}")]
         public async Task<ActionResult<TrainJourney>> GetTrainJourney(int trainId)
         {
