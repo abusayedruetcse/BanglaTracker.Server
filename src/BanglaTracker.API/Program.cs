@@ -25,7 +25,11 @@ builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 // Register the Services
 builder.Services.AddScoped<ILocationService, LocationService>();
 builder.Services.AddScoped<ITrainJourneyService, TrainJourneyService>();
+builder.Services.AddScoped<IUserService, UserService>();
+
+// Register the repository
 builder.Services.AddScoped<ITrainJourneyTrackingRepository, TrainJourneyTrackingRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 // Register the background services
 builder.Services.AddHostedService<TrainPositionUpdaterService>();   // Register as singleton
