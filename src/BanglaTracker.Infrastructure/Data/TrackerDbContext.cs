@@ -10,12 +10,16 @@ namespace BanglaTracker.Infrastructure.Data
         {
         }
 
+        public DbSet<AppUser> AppUsers { get; set; }
         public DbSet<LocationData> LocationDatas { get; set; }
         public DbSet<TrainJourney> TrainJourneys { get; set; }
         public DbSet<TrainJourneyTracking> TrainJourneyTrackings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<AppUser>()
+                .HasKey(user => user.InstallationId);
+
             modelBuilder.Entity<LocationData>()
                 .HasKey(ld => ld.Id); // Set the primary key
 
