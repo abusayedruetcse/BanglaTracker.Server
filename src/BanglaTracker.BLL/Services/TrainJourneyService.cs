@@ -261,7 +261,7 @@ namespace BanglaTracker.BLL.Services
             Guid sensorNumber)
         {
             // Validaton user to avoid multiple sensor for a single journey.
-            var isSuccess = await UpdateTrackingToStartJourneyAsync(1, sensorNumber);
+            var isSuccess = await UpdateTrackingToStartJourneyAsync(1, sensorNumber); // TODO: find the journey ID and replace here.
             if (!isSuccess)
             {
                 return (false, "User is not allowed to start this journey.");
