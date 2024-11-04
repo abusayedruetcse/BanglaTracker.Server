@@ -242,15 +242,39 @@ namespace BanglaTracker.BLL.Services
             string trainNumber,
             Guid sensorNumber)
         {
-            // TODO: Apply validaton here.
-            //var isAuthorized = await _authService.IsUserAuthorizedToStartJourneyAsync(userId);
-            //if (!isAuthorized)
-            //{
-            //    return (false, "User is not authorized to start this journey.");
-            //}
+            // Validaton user to avoid multiple sensor for a single journey.
+            var isSuccess = await UpdateTrackingToStartJourneyAsync(1, sensorNumber);
+            if (!isSuccess)
+            {
+                return (false, "User is not allowed to start this journey.");
+            }
 
-            //await InitializeJourneyStartAsync(1, 1); // TODO: undo commrnts & find these journeyId, stationIdx and pass values
+            await InitializeJourneyStartAsync(1, 1); // TODO: find these journeyId, stationIdx and pass values
             return (true, "Journey started successfully.");
+        }
+
+        public async Task<bool> UpdateTrackingToStartJourneyAsync(
+            int journeyId,
+            Guid sensorNumber)
+        {
+            var journeyTracking = await _trainJourneyTrackingRepository.GetJourneyTrackingByJourneyIdAsync(journeyId);
+
+            if (journeyTracking == null)
+            {
+                throw new InvalidOperationException($"Journey with ID {journeyId} not found.");
+            }
+
+            if (journeyTracking.SensorNumber == Guid.Empty)
+            {
+                journeyTracking.SensorNumber = sensorNumber;
+                journeyTracking.Status = JourneyStatus.InProgress;
+                journeyTracking.ModifyDateTime = DateTime.UtcNow;
+
+                await _trainJourneyTrackingRepository.UpdateAsync(journeyTracking);
+                return true;
+            }
+            
+            return false;
         }
 
         private async Task InitializeJourneyStartAsync(
@@ -274,11 +298,6 @@ namespace BanglaTracker.BLL.Services
             journey.Stations[stationIndex + 1].EstimatedArrivalTime = journey.Stations[stationIndex + 1].AverageTravelTime;
 
             await _repository.UpdateAsync(journey);
-
-            await UpdateJourneyStatusAsync(journeyId, JourneyStatus.InProgress);
-
-            // TODO: update sensorNumber in Tracking table.
-            // Unique user at a time with current index (Activate button)
 
             await _repository.SaveChangesAsync();
         }
