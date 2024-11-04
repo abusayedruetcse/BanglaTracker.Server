@@ -11,13 +11,16 @@ namespace BanglaTracker.BLL.Services
     {
         private readonly IRepository<TrainJourney> _repository;
         private readonly ITrainJourneyTrackingRepository _trainJourneyTrackingRepository;
+        private readonly ILocationRepository _locationRepository;
 
         public TrainJourneyService(
             IRepository<TrainJourney> repository,
-            ITrainJourneyTrackingRepository trainJourneyTrackingRepository)
+            ITrainJourneyTrackingRepository trainJourneyTrackingRepository,
+            ILocationRepository locationRepository)
         {
             _repository = repository;
             _trainJourneyTrackingRepository = trainJourneyTrackingRepository;
+            _locationRepository = locationRepository;
         }
 
         public async Task<TrainJourney> GetJourneyAsync(int trainId)
@@ -47,11 +50,26 @@ namespace BanglaTracker.BLL.Services
                 await UpdateJourneyStatusAsync(journey.Id, JourneyStatus.Completed);
             }
 
+            // Update journey with currentlocation before starting progress.
+            await UpdateCurrentLocation(journey);
+
             UpdateJourneyProgress(journey);
 
             await _repository.UpdateAsync(journey);
             
             await _repository.SaveChangesAsync();
+        }
+
+        public async Task UpdateCurrentLocation(TrainJourney journey)
+        {
+            var tracking = await _trainJourneyTrackingRepository.GetJourneyTrackingByJourneyIdAsync(journey.Id);
+
+            var locationData = await _locationRepository.FetchLocationByInstallationIDAsync(tracking?.SensorNumber ?? Guid.Empty);
+
+            if (locationData != null)
+            {
+                journey.CurrentLocation = locationData;
+            }
         }
 
         #region JourneyProgressCalculator
