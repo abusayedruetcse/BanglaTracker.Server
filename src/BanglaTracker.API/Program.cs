@@ -28,6 +28,7 @@ builder.Services.AddScoped<ITrainJourneyService, TrainJourneyService>();
 builder.Services.AddScoped<IUserService, UserService>();
 
 // Register the repository
+builder.Services.AddScoped<ILocationRepository, LocationRepository>();
 builder.Services.AddScoped<ITrainJourneyTrackingRepository, TrainJourneyTrackingRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 

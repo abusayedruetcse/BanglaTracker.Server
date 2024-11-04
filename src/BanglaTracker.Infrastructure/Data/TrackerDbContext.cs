@@ -21,7 +21,7 @@ namespace BanglaTracker.Infrastructure.Data
                 .HasKey(user => user.InstallationId);
 
             modelBuilder.Entity<LocationData>()
-                .HasKey(ld => ld.Id); // Set the primary key
+                .HasKey(ld => ld.InstallationId); // Set the primary key
 
             modelBuilder.Entity<TrainJourney>()
                 .HasKey(tj => tj.Id);

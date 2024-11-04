@@ -19,9 +19,10 @@ namespace BanglaTracker.BLL.Interfaces
             JourneyStatus journeyStatus);
 
         Task<(bool isAuthorized, string message)> StartJourneyAsync(
-            int journeyId,
-            int stationIndex,
-            string sensorNumber,
-            string TrainNumber);
+            string fromStation,
+            string toStation,
+            string currentStation,
+            string trainNumber,
+            Guid sensorNumber);
     }
 }

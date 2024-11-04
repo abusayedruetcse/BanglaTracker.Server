@@ -2,7 +2,7 @@
 {
     public class UpdateLastActiveRequest
     {
-        public string InstallationID { get; set; }
+        public Guid InstallationID { get; set; }
         public DateTime LastActiveTime { get; set; }
     }
 }

@@ -236,10 +236,11 @@ namespace BanglaTracker.BLL.Services
         #endregion JourneyProgressCalculator
 
         public async Task<(bool isAuthorized, string message)> StartJourneyAsync(
-            int journeyId,             
-            int stationIndex,
-            string sensorNumber,
-            string TrainNumber)
+            string fromStation,
+            string toStation,
+            string currentStation,
+            string trainNumber,
+            Guid sensorNumber)
         {
             // TODO: Apply validaton here.
             //var isAuthorized = await _authService.IsUserAuthorizedToStartJourneyAsync(userId);
@@ -248,7 +249,7 @@ namespace BanglaTracker.BLL.Services
             //    return (false, "User is not authorized to start this journey.");
             //}
 
-            await InitializeJourneyStartAsync(journeyId, stationIndex);
+            //await InitializeJourneyStartAsync(1, 1); // TODO: undo commrnts & find these journeyId, stationIdx and pass values
             return (true, "Journey started successfully.");
         }
 

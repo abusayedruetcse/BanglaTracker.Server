@@ -6,18 +6,31 @@ namespace BanglaTracker.BLL.Services
 {
     public class LocationService : ILocationService
     {
-        private readonly IRepository<LocationData> _repository;
+        private readonly ILocationRepository _locationRepository;
 
-        public LocationService(IRepository<LocationData> repository)
+        public LocationService(ILocationRepository locationRepository)
         {
-            _repository = repository;
+            _locationRepository = locationRepository;
         }
 
         public async Task SaveLocationAsync(LocationData locationData)
         {
-            await _repository.AddAsync(locationData);
+            var location = await _locationRepository.FetchLocationByInstallationIDAsync(locationData.InstallationId);
 
-            await _repository.SaveChangesAsync();
+            if (location == null)
+            {                
+                await _locationRepository.AddAsync(locationData);
+            }
+            else
+            {
+                location.Longitude = locationData.Longitude;
+                location.Latitude = locationData.Latitude;
+                location.ModifiedDateTime = locationData.ModifiedDateTime;
+
+                await _locationRepository.UpdateAsync(location);
+            }
+
+            await _locationRepository.SaveChangesAsync();
         }
 
     }
