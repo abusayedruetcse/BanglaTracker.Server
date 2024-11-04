@@ -20,14 +20,14 @@ namespace BanglaTracker.API.Controllers
         [HttpPost("start")]
         public async Task<IActionResult> StartJourney([FromBody] StartJourneyRequest request)
         {
-            var (isAuthorized, message) = await _trainJourneyService.StartJourneyAsync(
+            var (hasGranted, message) = await _trainJourneyService.StartJourneyAsync(
                 request.FromStation,
                 request.ToStation,
                 request.CurrentStation,
                 request.TrainNumber,
                 request.InstallationID);
 
-            if (!isAuthorized)
+            if (!hasGranted)
             {
                 return Unauthorized(new { message });
             }

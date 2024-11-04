@@ -253,7 +253,7 @@ namespace BanglaTracker.BLL.Services
 
         #endregion JourneyProgressCalculator
 
-        public async Task<(bool isAuthorized, string message)> StartJourneyAsync(
+        public async Task<(bool hasGranted, string message)> StartJourneyAsync(
             string fromStation,
             string toStation,
             string currentStation,

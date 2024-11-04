@@ -18,7 +18,7 @@ namespace BanglaTracker.BLL.Interfaces
         Task<List<int>> GetJourneyIdsByStatusAsync(
             JourneyStatus journeyStatus);
 
-        Task<(bool isAuthorized, string message)> StartJourneyAsync(
+        Task<(bool hasGranted, string message)> StartJourneyAsync(
             string fromStation,
             string toStation,
             string currentStation,
