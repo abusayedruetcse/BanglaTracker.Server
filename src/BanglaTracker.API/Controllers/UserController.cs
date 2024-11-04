@@ -19,7 +19,7 @@ namespace BanglaTracker.API.Controllers
         [HttpPost("UpdateLastActiveTime")]
         public async Task<IActionResult> UpdateLastActiveTime([FromBody] UpdateLastActiveRequest request)
         {
-            if (request == null || request.InstallationID == null)
+            if (request == null || request.InstallationID == Guid.Empty)
             {
                 return BadRequest("Invalid request.");
             }
@@ -27,7 +27,7 @@ namespace BanglaTracker.API.Controllers
             try
             {
                 // Assuming your UserService handles the logic for updating last active time
-                var success = await _userService.UpdateLastActiveAsync(new Guid(request.InstallationID), request.LastActiveTime);
+                var success = await _userService.UpdateLastActiveAsync(request.InstallationID, request.LastActiveTime);
 
                 if (!success)
                 {

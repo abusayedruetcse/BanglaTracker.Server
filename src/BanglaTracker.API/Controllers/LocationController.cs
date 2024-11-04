@@ -30,7 +30,7 @@ namespace BanglaTracker.API.Controllers
 
             await _locationService.SaveLocationAsync(locationData);
 
-            _logger.LogInformation($"Received location: Lat={locationData.Latitude}, Lon={locationData.Longitude}, Timestamp={locationData.Timestamp}");
+            _logger.LogInformation($"Received location: Lat={locationData.Latitude}, Lon={locationData.Longitude}, Timestamp={locationData.ModifiedDateTime}");
 
             // Return a success response
             return Ok(new { Message = "Location received successfully" });

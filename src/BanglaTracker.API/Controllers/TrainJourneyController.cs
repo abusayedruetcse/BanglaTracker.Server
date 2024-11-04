@@ -1,6 +1,7 @@
 ﻿using BanglaTracker.BLL.DTOs;
 using BanglaTracker.BLL.Interfaces;
 using BanglaTracker.Core.Entities;
+using BanglaTracker.Core.Requests;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BanglaTracker.API.Controllers
@@ -16,12 +17,17 @@ namespace BanglaTracker.API.Controllers
             _trainJourneyService = trainJourneyService;
         }
 
-        [HttpPost("{trainId}/start")]
-        public async Task<IActionResult> StartJourney(int trainId, [FromBody] int userId)
+        [HttpPost("start")]
+        public async Task<IActionResult> StartJourney([FromBody] StartJourneyRequest request)
         {
-            var (isAuthorized, message) = await _trainJourneyService.StartJourneyAsync(trainId, 1, "abc", "xyz");
+            var (hasGranted, message) = await _trainJourneyService.StartJourneyAsync(
+                request.FromStation,
+                request.ToStation,
+                request.CurrentStation,
+                request.TrainNumber,
+                request.InstallationID);
 
-            if (!isAuthorized)
+            if (!hasGranted)
             {
                 return Unauthorized(new { message });
             }
