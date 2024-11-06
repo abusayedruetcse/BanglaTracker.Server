@@ -1,6 +1,8 @@
-﻿namespace BanglaTracker.Core.Entities
+﻿using BanglaTracker.Core.Entities;
+
+namespace BanglaTracker.Core.Responses
 {
-    public class Station
+    public class StationResponse
     {
         public int Id { get; set; }
         public string Name { get; set; }

@@ -1,6 +1,6 @@
 ﻿using BanglaTracker.BLL.DTOs;
 using BanglaTracker.BLL.Interfaces;
-using BanglaTracker.Core.Entities;
+using BanglaTracker.Core.DTOs;
 using BanglaTracker.Core.Requests;
 using Microsoft.AspNetCore.Mvc;
 
@@ -29,14 +29,14 @@ namespace BanglaTracker.API.Controllers
 
             if (!hasGranted)
             {
-                return Unauthorized(new { message });
+                return Unauthorized(new { IsSuccess = false, message });
             }
 
-            return Ok(new { message });
+            return Ok(new { IsSuccess = true, message });
         }
 
         [HttpGet("{trainId}")]
-        public async Task<ActionResult<TrainJourney>> GetTrainJourney(int trainId)
+        public async Task<ActionResult<TrainJourneyDto>> GetTrainJourney(int trainId)
         {
             var journey = await _trainJourneyService.GetJourneyAsync(trainId);
             return Ok(journey);
