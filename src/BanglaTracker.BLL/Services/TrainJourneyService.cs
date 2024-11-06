@@ -1,6 +1,6 @@
 ﻿using BanglaTracker.BLL.DTOs;
 using BanglaTracker.BLL.Interfaces;
-using BanglaTracker.Core.Entities;
+using BanglaTracker.Core.DTOs;
 using BanglaTracker.Core.Enums;
 using BanglaTracker.Core.Interfaces;
 using BanglaTracker.Core.Utils;
@@ -9,12 +9,12 @@ namespace BanglaTracker.BLL.Services
 {
     public class TrainJourneyService : ITrainJourneyService
     {
-        private readonly IRepository<TrainJourney> _repository;
+        private readonly IRepository<TrainJourneyDto> _repository;
         private readonly ITrainJourneyTrackingRepository _trainJourneyTrackingRepository;
         private readonly ILocationRepository _locationRepository;
 
         public TrainJourneyService(
-            IRepository<TrainJourney> repository,
+            IRepository<TrainJourneyDto> repository,
             ITrainJourneyTrackingRepository trainJourneyTrackingRepository,
             ILocationRepository locationRepository)
         {
@@ -23,7 +23,7 @@ namespace BanglaTracker.BLL.Services
             _locationRepository = locationRepository;
         }
 
-        public async Task<TrainJourney> GetJourneyAsync(int trainId)
+        public async Task<TrainJourneyDto> GetJourneyAsync(int trainId)
         {
             // Fetch the train journey data
             return await _repository.GetByIdAsync(trainId);
@@ -60,7 +60,7 @@ namespace BanglaTracker.BLL.Services
             await _repository.SaveChangesAsync();
         }
 
-        public async Task UpdateCurrentLocation(TrainJourney journey)
+        public async Task UpdateCurrentLocation(TrainJourneyDto journey)
         {
             var tracking = await _trainJourneyTrackingRepository.GetJourneyTrackingByJourneyIdAsync(journey.Id);
 
@@ -78,7 +78,7 @@ namespace BanglaTracker.BLL.Services
         /// Updates the journey progress for the train, calculating distance, speed, and 
         /// updating progress percentage and estimated arrival times for stations.
         /// </summary>
-        public void UpdateJourneyProgress(TrainJourney journey)
+        public void UpdateJourneyProgress(TrainJourneyDto journey)
         {
             // Increment total travel time by the configured timer interval
             journey.TotalTravelTime += TimeSpan.FromMinutes(5);  // TODO: Move interval time to configuration
@@ -112,7 +112,7 @@ namespace BanglaTracker.BLL.Services
         /// <summary>
         /// Calculates and updates the train’s current distance from the last station and speed.
         /// </summary>
-        private void UpdateDistanceAndCurrentVelocity(TrainJourney journey)
+        private void UpdateDistanceAndCurrentVelocity(TrainJourneyDto journey)
         {
             var previousDistance = journey.DistanceFromLastStation;
             journey.DistanceFromLastStation = CalculateDistance(journey);
@@ -124,7 +124,7 @@ namespace BanglaTracker.BLL.Services
         /// <summary>
         /// Updates the journey progress as a percentage of the distance covered toward the next station.
         /// </summary>
-        private void UpdateJourneyProgressPercent(TrainJourney journey)
+        private void UpdateJourneyProgressPercent(TrainJourneyDto journey)
         {
             var nextStationDistance = journey.Stations[journey.CurrentStationIndex + 1].Distance;
             journey.JourneyProgressPercent = 100 - (int)((nextStationDistance - journey.DistanceFromLastStation) * 100 / nextStationDistance);
@@ -133,7 +133,7 @@ namespace BanglaTracker.BLL.Services
         /// <summary>
         /// Updates estimated arrival times for the next station and subsequent stations based on current speed.
         /// </summary>
-        private void UpdatePossibleReachTime(TrainJourney journey)
+        private void UpdatePossibleReachTime(TrainJourneyDto journey)
         {           
             if (journey.CurrentSpeed > 0)
             {
@@ -155,7 +155,7 @@ namespace BanglaTracker.BLL.Services
         /// <summary>
         /// Calculates the distance between the current train location and the last station location.
         /// </summary>
-        private double CalculateDistance(TrainJourney journey)
+        private double CalculateDistance(TrainJourneyDto journey)
         {
             var source = journey.Stations[journey.CurrentStationIndex].Location;
             var destination = journey.CurrentLocation;
@@ -165,7 +165,7 @@ namespace BanglaTracker.BLL.Services
         /// <summary>
         /// Starts the journey after a stop, calculating any break time spent at the station.
         /// </summary>
-        private void StartJourneyFromStation(TrainJourney journey)
+        private void StartJourneyFromStation(TrainJourneyDto journey)
         {
             if (journey.IsAtStation)
             {
@@ -187,7 +187,7 @@ namespace BanglaTracker.BLL.Services
         /// <summary>
         /// Records a stop at a station, updating the actual and average travel times.
         /// </summary>
-        private void StopJourneyAtStation(TrainJourney journey)
+        private void StopJourneyAtStation(TrainJourneyDto journey)
         {
             var currentStation = journey.Stations[journey.CurrentStationIndex + 1];
             var travelTime = journey.TotalTravelTime - journey.LastRecordedTravelTime;
@@ -212,7 +212,7 @@ namespace BanglaTracker.BLL.Services
         /// <summary>
         /// Checks if the train has reached its final destination.
         /// </summary>
-        private bool IsAtDestination(TrainJourney journey)
+        private bool IsAtDestination(TrainJourneyDto journey)
         {
             return journey.CurrentStationIndex + 1 >= journey.Stations.Count;
         }
@@ -220,7 +220,7 @@ namespace BanglaTracker.BLL.Services
         /// <summary>
         /// Checks if the train is entering the radius of the current station (e.g., within 0.5 km).
         /// </summary>
-        private bool IsTrainEnteringStationArea(TrainJourney journey)
+        private bool IsTrainEnteringStationArea(TrainJourneyDto journey)
         {
             var distanceToStation = journey.DistanceFromLastStation;
             var stationRadiusThreshold = 0.5; // TODO: Move this threshold to configuration
@@ -233,7 +233,7 @@ namespace BanglaTracker.BLL.Services
         /// <summary>
         /// Checks if the train is close enough to the next station to be considered as reaching it.
         /// </summary>
-        private bool IsTrainReachingStation(TrainJourney journey)
+        private bool IsTrainReachingStation(TrainJourneyDto journey)
         {
             var distanceToNextStation = journey.Stations[journey.CurrentStationIndex].Distance - journey.DistanceFromLastStation;
             var stationReachThreshold = 0.5; // TODO: Move this threshold to configuration
@@ -244,7 +244,7 @@ namespace BanglaTracker.BLL.Services
         /// <summary>
         /// Checks if the train has moved away from the current station’s radius.
         /// </summary>
-        private bool HasTrainMovedAwayFromStation(TrainJourney journey)
+        private bool HasTrainMovedAwayFromStation(TrainJourneyDto journey)
         {
             var movedAwayThreshold = 0.5; // TODO: Move this threshold to configuration
 
