@@ -54,7 +54,7 @@ namespace BanglaTracker.BLL.Services
 
         public async Task<IEnumerable<StationDto>> GetAllStationsAsync()
         {
-            var stations = await _stationRepository.GetAllAsync();
+            var stations = (await _stationRepository.GetAllAsync()).OrderBy(x => x.Name).ToList();
             return stations.Select(station => Mapper<Station, StationDto>.Map(station));
         }
 
@@ -89,7 +89,7 @@ namespace BanglaTracker.BLL.Services
 
         public async Task<IEnumerable<TrainDto>> GetAllTrainsAsync()
         {
-            var trains = await _trainRepository.GetAllAsync();
+            var trains = (await _trainRepository.GetAllAsync()).OrderBy(x => x.Name).ToList();
             return trains.Select(train => Mapper<Train, TrainDto>.Map(train));
         }       
 

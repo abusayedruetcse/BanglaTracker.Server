@@ -16,8 +16,7 @@ namespace BanglaTracker.API.Controllers
         private readonly ITrainService _trainService;
 
         public TrainController(
-            ITrainService trainService, 
-            IRepository<StationDto> stationRepository)
+            ITrainService trainService)
         {
             _trainService = trainService;
         }
@@ -80,15 +79,7 @@ namespace BanglaTracker.API.Controllers
         public async Task<IActionResult> GetAllTrainsAsync()
         {
             var trains = await _trainService.GetAllTrainsAsync();
-            trains = new List<TrainDto>()
-            {
-                new TrainDto() {Id = 1, Name = "Dhumketu"},
-                new TrainDto() {Id = 2, Name = "Bonolota"},
-                new TrainDto() {Id = 3, Name = "Padma"},
-                new TrainDto() {Id = 4, Name = "Silkcity"},
-                new TrainDto() {Id = 5, Name = "Kopotakkho"}
-            };
-            trains = trains.OrderBy(x => x.Name).ToList();
+            
             return Ok(trains);
         }
 
@@ -99,36 +90,6 @@ namespace BanglaTracker.API.Controllers
             var stationDtos = await _trainService.GetAllStationsAsync();
 
             var stations = stationDtos.Select(s => Mapper<StationDto, StationResponse>.Map(s));
-
-            stations = new List<StationResponse>()
-            {
-                new StationResponse() {Id = 1, Name = "Abdullahpur"},
-                new StationResponse() {Id = 2, Name = "BB Setu"},
-                new StationResponse() {Id = 3, Name = "Zamuna"},
-                new StationResponse() {Id = 4, Name = "Tangail"},
-                new StationResponse() {Id = 5, Name = "ABC"},
-                new StationResponse() {Id = 1, Name = "Abdullahpur"},
-                new StationResponse() {Id = 2, Name = "BB Setu"},
-                new StationResponse() {Id = 3, Name = "Zamuna"},
-                new StationResponse() {Id = 4, Name = "Tangail"},
-                new StationResponse() {Id = 5, Name = "ABC"},
-                new StationResponse() {Id = 1, Name = "Abdullahpur"},
-                new StationResponse() {Id = 2, Name = "BB Setu"},
-                new StationResponse() {Id = 3, Name = "Zamuna"},
-                new StationResponse() {Id = 4, Name = "Tangail"},
-                new StationResponse() {Id = 5, Name = "ABC"},
-                new StationResponse() {Id = 1, Name = "Abdullahpur"},
-                new StationResponse() {Id = 2, Name = "BB Setu"},
-                new StationResponse() {Id = 3, Name = "Zamuna"},
-                new StationResponse() {Id = 4, Name = "Tangail"},
-                new StationResponse() {Id = 5, Name = "ABC"},
-                new StationResponse() {Id = 1, Name = "Abdullahpur"},
-                new StationResponse() {Id = 2, Name = "BB Setu"},
-                new StationResponse() {Id = 3, Name = "Zamuna"},
-                new StationResponse() {Id = 4, Name = "Tangail"},
-                new StationResponse() {Id = 5, Name = "ABC"}
-            };
-            stations = stations.OrderBy(x => x.Name).ToList();
 
             return Ok(stations);
         }
