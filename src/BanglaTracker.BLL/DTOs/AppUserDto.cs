@@ -1,6 +1,6 @@
-﻿namespace BanglaTracker.Core.Entities
+﻿namespace BanglaTracker.BLL.DTOs
 {
-    public class AppUser
+    public class AppUserDto
     {
         public int Id { get; set; }
         public Guid InstallationId { get; set; }

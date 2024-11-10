@@ -1,4 +1,5 @@
-﻿using BanglaTracker.BLL.Interfaces;
+﻿using BanglaTracker.BLL.DTOs;
+using BanglaTracker.BLL.Interfaces;
 using BanglaTracker.Core.Entities;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,16 +22,16 @@ namespace BanglaTracker.API.Controllers
 
         // POST api/location
         [HttpPost]
-        public async Task<IActionResult> TrackLocation([FromBody] LocationData locationData)
+        public async Task<IActionResult> TrackLocation([FromBody] AppUserDto userDto)
         {
-            if (locationData == null)
+            if (userDto == null)
             {
                 return BadRequest("Location data is required.");
             }
 
-            await _locationService.SaveLocationAsync(locationData);
+            await _locationService.SaveLocationAsync(userDto);
 
-            _logger.LogInformation($"Received location: Lat={locationData.Latitude}, Lon={locationData.Longitude}, Timestamp={locationData.ModifiedDateTime}");
+            _logger.LogInformation($"Received location: Lat={userDto.Latitude}, Lon={userDto.Longitude}, Timestamp={userDto.LastActiveDateTime}");
 
             // Return a success response
             return Ok(new { Message = "Location received successfully" });

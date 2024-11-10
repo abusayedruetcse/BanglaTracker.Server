@@ -1,6 +1,5 @@
 ﻿using BanglaTracker.BLL.DTOs;
 using BanglaTracker.BLL.Interfaces;
-using BanglaTracker.Core.DTOs;
 using BanglaTracker.Core.Enums;
 using BanglaTracker.Core.Interfaces;
 using BanglaTracker.Core.Utils;
@@ -10,16 +9,16 @@ namespace BanglaTracker.BLL.Services
     public class TrainJourneyService : ITrainJourneyService
     {
         private readonly IRepository<TrainJourneyDto> _repository;
-        private readonly ITrainJourneyTrackingRepository _trainJourneyTrackingRepository;
+        private readonly ITrainJourneyRepository _trainJourneyRepository;
         private readonly ILocationRepository _locationRepository;
 
         public TrainJourneyService(
             IRepository<TrainJourneyDto> repository,
-            ITrainJourneyTrackingRepository trainJourneyTrackingRepository,
+            ITrainJourneyRepository trainJourneyRepository,
             ILocationRepository locationRepository)
         {
             _repository = repository;
-            _trainJourneyTrackingRepository = trainJourneyTrackingRepository;
+            _trainJourneyRepository = trainJourneyRepository;
             _locationRepository = locationRepository;
         }
 
@@ -32,7 +31,7 @@ namespace BanglaTracker.BLL.Services
         public async Task<List<int>> GetJourneyIdsByStatusAsync(JourneyStatus journeyStatus)
         {
             // Fetch the train journey data
-            return await _trainJourneyTrackingRepository.FetchJourneyIdsByStatusAsync(journeyStatus);
+            return await _trainJourneyRepository.FetchJourneyIdsByStatusAsync(journeyStatus);
         }
 
         public async Task CalculateMetricsAsync(int trainId)
@@ -62,7 +61,7 @@ namespace BanglaTracker.BLL.Services
 
         public async Task UpdateCurrentLocation(TrainJourneyDto journey)
         {
-            var tracking = await _trainJourneyTrackingRepository.GetJourneyTrackingByJourneyIdAsync(journey.Id);
+            var tracking = await _trainJourneyRepository.GetByIdAsync(journey.Id);
 
             var locationData = await _locationRepository.FetchLocationByInstallationIDAsync(tracking?.SensorNumber ?? Guid.Empty);
 
@@ -275,7 +274,7 @@ namespace BanglaTracker.BLL.Services
             int journeyId,
             Guid sensorNumber)
         {
-            var journeyTracking = await _trainJourneyTrackingRepository.GetJourneyTrackingByJourneyIdAsync(journeyId);
+            var journeyTracking = await _trainJourneyRepository.GetByIdAsync(journeyId);
 
             if (journeyTracking == null)
             {
@@ -285,10 +284,10 @@ namespace BanglaTracker.BLL.Services
             if (journeyTracking.SensorNumber == Guid.Empty)
             {
                 journeyTracking.SensorNumber = sensorNumber;
-                journeyTracking.Status = JourneyStatus.InProgress;
-                journeyTracking.ModifyDateTime = DateTime.UtcNow;
+                journeyTracking.Status = (int)JourneyStatus.InProgress;
+                journeyTracking.TrackingDateTime = DateTime.UtcNow;
 
-                await _trainJourneyTrackingRepository.UpdateAsync(journeyTracking);
+                await _trainJourneyRepository.UpdateAsync(journeyTracking);
                 return true;
             }
             
@@ -324,17 +323,17 @@ namespace BanglaTracker.BLL.Services
             int journeyId,
             JourneyStatus journeyStatus)
         {
-            var journeyTracking = await _trainJourneyTrackingRepository.GetJourneyTrackingByJourneyIdAsync(journeyId);
+            var journeyTracking = await _trainJourneyRepository.GetByIdAsync(journeyId);
 
             if (journeyTracking == null)
             {
                 throw new InvalidOperationException($"Journey with ID {journeyId} not found.");
             }
 
-            journeyTracking.Status = journeyStatus;
-            journeyTracking.ModifyDateTime = DateTime.UtcNow;
+            journeyTracking.Status = (int)journeyStatus;
+            journeyTracking.TrackingDateTime = DateTime.UtcNow;
 
-            await _trainJourneyTrackingRepository.UpdateAsync(journeyTracking);
+            await _trainJourneyRepository.UpdateAsync(journeyTracking);
         }
     }
 

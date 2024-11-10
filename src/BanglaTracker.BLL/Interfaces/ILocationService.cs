@@ -1,10 +1,11 @@
-﻿using BanglaTracker.Core.Entities;
+﻿using BanglaTracker.BLL.DTOs;
+using BanglaTracker.BLL.Models;
 
 namespace BanglaTracker.BLL.Interfaces
 {
     public interface ILocationService
     {
-        Task SaveLocationAsync(LocationData locationData);
+        Task SaveLocationAsync(AppUserDto userDto);
 
     }
 

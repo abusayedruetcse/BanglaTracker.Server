@@ -1,4 +1,4 @@
-﻿namespace BanglaTracker.Core.DTOs
+﻿namespace BanglaTracker.BLL.DTOs
 {
     public class TrainDto
     {

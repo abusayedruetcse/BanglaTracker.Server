@@ -3,13 +3,10 @@ using BanglaTracker.Core.Enums;
 
 namespace BanglaTracker.Core.Interfaces
 {
-    public interface ITrainJourneyTrackingRepository : IRepository<TrainJourneyTracking>
+    public interface ITrainJourneyRepository : IRepository<TrainJourney>
     {
         Task<List<int>> FetchJourneyIdsByStatusAsync(
             JourneyStatus journeyStatus);
-
-        Task<TrainJourneyTracking?> GetJourneyTrackingByJourneyIdAsync(
-            int journeyId);
     }
 
 }

@@ -1,7 +1,8 @@
 ﻿
-using BanglaTracker.Core.Entities;
 
-namespace BanglaTracker.Core.Requests
+using BanglaTracker.BLL.Models;
+
+namespace BanglaTracker.BLL.Requests
 {
     public class AddStationRequest
     {

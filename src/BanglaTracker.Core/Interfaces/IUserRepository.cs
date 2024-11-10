@@ -7,6 +7,8 @@ namespace BanglaTracker.Core.Interfaces
     {
         Task<AppUser?> FetchUserByInstallationIDAsync(
             Guid installationId);
+
+
     }
 
 }

@@ -1,14 +1,14 @@
-﻿using BanglaTracker.Core.Entities;
-using BanglaTracker.Core.Interfaces;
+﻿using BanglaTracker.BLL.Interfaces;
+using BanglaTracker.BLL.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace BanglaTracker.Infrastructure.Data.Repositories
 {
-    public class LocationRepository : Repository<LocationData>, ILocationRepository
+    public class LocationRepository : ILocationRepository
     {
         private readonly TrackerDbContext _context;
 
-        public LocationRepository(TrackerDbContext context) : base(context) // Pass context to the base constructor
+        public LocationRepository(TrackerDbContext context)
         {
             _context = context;
         }
@@ -16,8 +16,13 @@ namespace BanglaTracker.Infrastructure.Data.Repositories
         public async Task<LocationData?> FetchLocationByInstallationIDAsync(
             Guid installationId)
         {
-            return await _context.LocationDatas
-                .Where(loc => loc.InstallationId == installationId)
+            return await _context.AppUsers
+                .Where(user => user.InstallationId == installationId)
+                .Select(loc => new LocationData()
+                {
+                    Longitude = loc.Longitude,
+                    Latitude = loc.Latitude,
+                })
                 .FirstOrDefaultAsync();
         }
         

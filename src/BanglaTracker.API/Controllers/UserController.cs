@@ -1,5 +1,5 @@
 ﻿using BanglaTracker.BLL.Interfaces;
-using BanglaTracker.Core.Requests;
+using BanglaTracker.BLL.Requests;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BanglaTracker.API.Controllers

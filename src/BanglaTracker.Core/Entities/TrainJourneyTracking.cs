@@ -2,6 +2,7 @@
 
 namespace BanglaTracker.Core.Entities
 {
+    // Sensor-Journey relational model 
     public class TrainJourneyTracking
     {
         public int Id { get; set; }

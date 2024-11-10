@@ -1,6 +1,6 @@
-﻿namespace BanglaTracker.Core.Requests
+﻿namespace BanglaTracker.BLL.DTOs
 {
-    public class StartJourneyRequest
+    public class StartJourneyDto
     {
         public string FromStation { get; set; }
         public string ToStation { get; set; }

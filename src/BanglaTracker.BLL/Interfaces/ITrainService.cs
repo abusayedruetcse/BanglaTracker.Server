@@ -1,5 +1,4 @@
-﻿using BanglaTracker.Core.DTOs;
-using BanglaTracker.Core.Entities;
+﻿using BanglaTracker.BLL.DTOs;
 
 namespace BanglaTracker.BLL.Interfaces
 {
