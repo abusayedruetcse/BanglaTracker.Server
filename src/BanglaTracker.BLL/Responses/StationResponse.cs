@@ -1,6 +1,8 @@
-﻿using BanglaTracker.Core.Entities;
+﻿
 
-namespace BanglaTracker.Core.Responses
+using BanglaTracker.BLL.Models;
+
+namespace BanglaTracker.BLL.Responses
 {
     public class StationResponse
     {

@@ -31,7 +31,7 @@ builder.Services.AddScoped<IDataImportService, DataImportService>();
 
 // Register the repository
 builder.Services.AddScoped<ILocationRepository, LocationRepository>();
-builder.Services.AddScoped<ITrainJourneyTrackingRepository, TrainJourneyTrackingRepository>();
+builder.Services.AddScoped<ITrainJourneyRepository, TrainJourneyRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 // Register the background services

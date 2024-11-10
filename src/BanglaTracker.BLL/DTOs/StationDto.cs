@@ -1,6 +1,7 @@
-﻿using BanglaTracker.Core.Entities;
+﻿
+using BanglaTracker.BLL.Models;
 
-namespace BanglaTracker.Core.DTOs
+namespace BanglaTracker.BLL.DTOs
 {
     public class StationDto
     {

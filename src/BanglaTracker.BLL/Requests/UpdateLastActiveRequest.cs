@@ -1,4 +1,4 @@
-﻿namespace BanglaTracker.Core.Requests
+﻿namespace BanglaTracker.BLL.Requests
 {
     public class UpdateLastActiveRequest
     {

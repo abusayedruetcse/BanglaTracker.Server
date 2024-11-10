@@ -1,10 +1,6 @@
 ﻿using BanglaTracker.BLL.Interfaces;
-using BanglaTracker.Core.DTOs;
 using BanglaTracker.Core.Entities;
 using BanglaTracker.Core.Interfaces;
-using BanglaTracker.Core.Utils;
-using System.Data;
-using System.Diagnostics;
 
 namespace BanglaTracker.BLL.Services
 {

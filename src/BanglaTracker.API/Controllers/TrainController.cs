@@ -1,9 +1,7 @@
-﻿using BanglaTracker.BLL.Interfaces;
-using BanglaTracker.Core.DTOs;
-using BanglaTracker.Core.Entities;
-using BanglaTracker.Core.Interfaces;
-using BanglaTracker.Core.Requests;
-using BanglaTracker.Core.Responses;
+﻿using BanglaTracker.BLL.DTOs;
+using BanglaTracker.BLL.Interfaces;
+using BanglaTracker.BLL.Requests;
+using BanglaTracker.BLL.Responses;
 using BanglaTracker.Core.Utils;
 using Microsoft.AspNetCore.Mvc;
 
