@@ -6,8 +6,6 @@
         public int TrainJourneyId { get; set; }
         public int StationId { get; set; }
         public int RouteStationOrder { get; set; }
-        public double Latitude { get; set; }    // Current position of the train
-        public double Longitude { get; set; }   // Current position of the train
         public double Distance { get; set; }    // Distance in kilometers from the previous station
         public TimeSpan ActualTravelTime { get; set; }  // Actual time taken from the previous station in last trip
         public TimeSpan AverageTravelTime { get; set; }  // Average travel duration to this station

@@ -8,13 +8,19 @@ namespace BanglaTracker.BLL.Services
     {
         private readonly IRepository<Station> _stationRepository;
         private readonly IRepository<Train> _trainRepository;
+        private readonly IRepository<TrainJourney> _journeyRepository;
+        private readonly IRepository<TrainJourneyDetail> _journeyDetailRepository;
 
         public DataImportService(
             IRepository<Station> stationRepository, 
-            IRepository<Train> trainRepository)
+            IRepository<Train> trainRepository,
+            IRepository<TrainJourney> journeyRepository,
+            IRepository<TrainJourneyDetail> journeyDetailRepository)
         {
             _stationRepository = stationRepository;
             _trainRepository = trainRepository;
+            _journeyRepository = journeyRepository;
+            _journeyDetailRepository = journeyDetailRepository;
         }
 
         public async Task AddStationsAsync(List<Station> stations)
@@ -36,6 +42,27 @@ namespace BanglaTracker.BLL.Services
 
             await _trainRepository.SaveChangesAsync();
         }
+
+        public async Task AddJourneysAsync(List<TrainJourney> journeys)
+        {
+            foreach (var journey in journeys)
+            {
+                await _journeyRepository.AddAsync(journey);
+            }
+
+            await _journeyRepository.SaveChangesAsync();
+        }
+
+        public async Task AddJourneyDetailsAsync(List<TrainJourneyDetail> routes)
+        {
+            foreach (var route in routes)
+            {
+                await _journeyDetailRepository.AddAsync(route);
+            }
+
+            await _journeyDetailRepository.SaveChangesAsync();
+        }
+
     }
 
 }

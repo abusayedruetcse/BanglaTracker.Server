@@ -6,6 +6,8 @@ namespace BanglaTracker.BLL.Interfaces
     {
         Task AddStationsAsync(List<Station> stations);
         Task AddTrainsAsync(List<Train> trains);
+        Task AddJourneysAsync(List<TrainJourney> journeys);
+        Task AddJourneyDetailsAsync(List<TrainJourneyDetail> routes);
     }
 
 }
