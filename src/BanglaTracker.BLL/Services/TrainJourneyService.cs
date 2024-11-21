@@ -1,5 +1,6 @@
 ﻿using BanglaTracker.BLL.DTOs;
 using BanglaTracker.BLL.Interfaces;
+using BanglaTracker.BLL.Models;
 using BanglaTracker.Core.Entities;
 using BanglaTracker.Core.Enums;
 using BanglaTracker.Core.Interfaces;
@@ -12,17 +13,20 @@ namespace BanglaTracker.BLL.Services
         private readonly IRepository<TrainJourneyDto> _repository;
         private readonly ITrainJourneyRepository _trainJourneyRepository;
         private readonly IRepository<TrainJourneyDetail> _trainJourneyDetailRepository;
+        private readonly IRepository<Station> _stationRepository;
         private readonly ILocationRepository _locationRepository;
 
         public TrainJourneyService(
             IRepository<TrainJourneyDto> repository,
             ITrainJourneyRepository trainJourneyRepository,
             IRepository<TrainJourneyDetail> trainJourneyDetailRepository,
+            IRepository<Station> stationRepository,
             ILocationRepository locationRepository)
         {
             _repository = repository;
             _trainJourneyRepository = trainJourneyRepository;
             _trainJourneyDetailRepository = trainJourneyDetailRepository;
+            _stationRepository = stationRepository;
             _locationRepository = locationRepository;
         }
 
@@ -43,9 +47,11 @@ namespace BanglaTracker.BLL.Services
             return await _trainJourneyRepository.FetchJourneyIdsByStatusAsync(journeyStatus);
         }
 
+        #region Calculate Journey Metrics
         public async Task CalculateMetricsAsync(int journeyId)
         {
-            var journey = await GetJourneyAsync(journeyId);
+            // Step-1: Load Journey in Dto
+            var journey = await GetTrainJourneyDtoAsync(journeyId);
 
             if (journey == null)
             {
@@ -53,28 +59,101 @@ namespace BanglaTracker.BLL.Services
                 return;
             }
 
-            // Load Journey in Dto
-            // Process JourneyDto
-            // Store JourneyDto in DB
-
-            var journeyDto = new TrainJourneyDto();
-
-            if (IsAtDestination(journeyDto))
+            // Step-2: Process JourneyDto
+            if (IsAtDestination(journey))
             {
                 await UpdateJourneyStatusAsync(journey.Id, JourneyStatus.Completed);
             }
 
             // Update journey with currentlocation before starting progress.
-            await UpdateCurrentLocation(journeyDto);
+            await UpdateCurrentLocation(journey);
 
-            UpdateJourneyProgress(journeyDto);
+            UpdateJourneyProgress(journey);
 
-            await _repository.UpdateAsync(journeyDto);
-            
-            await _repository.SaveChangesAsync();
+            // Step-3: Store JourneyDto in DB
+            await SaveTrainJourneyAsync(journey);
+
+            await _trainJourneyRepository.SaveChangesAsync();
+            await _trainJourneyDetailRepository.SaveChangesAsync();
         }
 
-        public async Task UpdateCurrentLocation(TrainJourneyDto journey)
+        private async Task<TrainJourneyDto> GetTrainJourneyDtoAsync(int journeyId)
+        {
+            // Load the TrainJourney data
+            var trainJourney = await _trainJourneyRepository.GetByIdAsync(journeyId);
+            if (trainJourney == null)
+            {
+                throw new Exception($"TrainJourney with Id {journeyId} not found.");
+            }
+
+            // Load associated TrainJourneyDetail data
+            var trainJourneyDetails = (await _trainJourneyDetailRepository
+                .FindAsync(d => d.TrainJourneyId == journeyId))
+                .OrderBy(s => s.RouteStationOrder);
+
+            // Load station information
+            var stationIds = trainJourneyDetails.Select(d => d.StationId).Distinct().ToList();
+            var stations = await _stationRepository.FindAsync(s => stationIds.Contains(s.Id));
+
+            // Build the DTO
+            var trainJourneyDto = new TrainJourneyDto
+            {
+                Id = trainJourney.Id,
+                TotalTravelTime = trainJourney.TotalTravelTime,
+                LastRecordedTravelTime = trainJourney.LastRecordedTravelTime,
+                CurrentStationIndex = trainJourney.CurrentStationIndex,
+                CurrentSpeed = trainJourney.CurrentSpeed,
+                DistanceFromLastStation = trainJourney.DistanceFromLastStation,
+                JourneyProgressPercent = trainJourney.JourneyProgressPercent,
+                IsAtStation = trainJourney.IsAtStation,
+                CurrentLocation = new LocationData
+                {
+                    Latitude = trainJourney.Latitude,
+                    Longitude = trainJourney.Longitude
+                },
+                Stations = trainJourneyDetails.Select(detail =>
+                {
+                    var station = stations.FirstOrDefault(s => s.Id == detail.StationId);
+                    return new StationDto
+                    {
+                        Id = detail.StationId,
+                        Name = station?.Name ?? "Unknown",
+                        Location = new LocationData
+                        {
+                            Latitude = station?.Latitude ?? 0,
+                            Longitude = station?.Longitude ?? 0
+                        },
+                        Distance = detail.Distance,
+                        ActualTravelTime = detail.ActualTravelTime,
+                        AverageTravelTime = detail.AverageTravelTime,
+                        ActualBreakTime = detail.ActualBreakTime,
+                        AverageBreakTime = detail.AverageBreakTime,
+                        EstimatedArrivalTime = detail.EstimatedArrivalTime
+                    };
+                }).OrderBy(s => s.Id).ToList()
+            };
+
+            return trainJourneyDto;
+        }
+
+        private async Task UpdateJourneyStatusAsync(
+            int journeyId,
+            JourneyStatus journeyStatus)
+        {
+            var journeyTracking = await _trainJourneyRepository.GetByIdAsync(journeyId);
+
+            if (journeyTracking == null)
+            {
+                throw new InvalidOperationException($"Journey with ID {journeyId} not found.");
+            }
+
+            journeyTracking.Status = (int)journeyStatus;
+            journeyTracking.TrackingDateTime = DateTime.UtcNow;
+
+            await _trainJourneyRepository.UpdateAsync(journeyTracking);
+        }
+
+        private async Task UpdateCurrentLocation(TrainJourneyDto journey)
         {
             var tracking = await _trainJourneyRepository.GetByIdAsync(journey.Id);
 
@@ -85,6 +164,64 @@ namespace BanglaTracker.BLL.Services
                 journey.CurrentLocation = locationData;
             }
         }
+
+        private async Task SaveTrainJourneyAsync(TrainJourneyDto journeyDto)
+        {
+            // Map TrainJourneyDto to TrainJourney
+            var trainJourney = await _trainJourneyRepository.GetByIdAsync(journeyDto.Id) ?? new TrainJourney();
+
+            trainJourney.Id = journeyDto.Id;
+            trainJourney.TotalTravelTime = journeyDto.TotalTravelTime;
+            trainJourney.LastRecordedTravelTime = journeyDto.LastRecordedTravelTime;
+            trainJourney.CurrentStationIndex = journeyDto.CurrentStationIndex;
+            trainJourney.CurrentSpeed = journeyDto.CurrentSpeed;
+            trainJourney.DistanceFromLastStation = journeyDto.DistanceFromLastStation;
+            trainJourney.JourneyProgressPercent = journeyDto.JourneyProgressPercent;
+            trainJourney.IsAtStation = journeyDto.IsAtStation;
+            trainJourney.Latitude = journeyDto.CurrentLocation.Latitude;
+            trainJourney.Longitude = journeyDto.CurrentLocation.Longitude;
+
+            // Save TrainJourney
+            if (trainJourney.Id == 0)
+            {
+                Console.WriteLine("Journey not found");
+            }
+            else
+            {
+                await _trainJourneyRepository.UpdateAsync(trainJourney);
+            }
+
+            // Get all existing TrainJourneyDetail records for this journey
+            var existingDetails = await _trainJourneyDetailRepository.FindAsync(d => d.TrainJourneyId == trainJourney.Id);
+
+            // Map TrainJourneyDto.Stations to TrainJourneyDetail
+            var newDetails = journeyDto.Stations.Select(station => new TrainJourneyDetail
+            {
+                Id = existingDetails.FirstOrDefault(d => d.StationId == station.Id)?.Id ?? 0, // Preserve existing ID if it exists
+                TrainJourneyId = trainJourney.Id,
+                StationId = station.Id,
+                ActualTravelTime = station.ActualTravelTime,
+                AverageTravelTime = station.AverageTravelTime,
+                ActualBreakTime = station.ActualBreakTime,
+                AverageBreakTime = station.AverageBreakTime,
+                EstimatedArrivalTime = station.EstimatedArrivalTime
+            }).ToList();
+
+            // Update or Insert TrainJourneyDetail
+            foreach (var detail in newDetails)
+            {
+                if (detail.Id == 0)
+                {
+                    Console.WriteLine("Station not found");
+                }
+                else
+                {
+                    await _trainJourneyDetailRepository.UpdateAsync(detail);
+                }
+            }            
+        }
+
+        #endregion
 
         #region JourneyProgressCalculator
 
@@ -344,23 +481,7 @@ namespace BanglaTracker.BLL.Services
 
             await _trainJourneyRepository.SaveChangesAsync();
         }
-
-        private async Task UpdateJourneyStatusAsync(
-            int journeyId,
-            JourneyStatus journeyStatus)
-        {
-            var journeyTracking = await _trainJourneyRepository.GetByIdAsync(journeyId);
-
-            if (journeyTracking == null)
-            {
-                throw new InvalidOperationException($"Journey with ID {journeyId} not found.");
-            }
-
-            journeyTracking.Status = (int)journeyStatus;
-            journeyTracking.TrackingDateTime = DateTime.UtcNow;
-
-            await _trainJourneyRepository.UpdateAsync(journeyTracking);
-        }
+        
     }
 
 }
