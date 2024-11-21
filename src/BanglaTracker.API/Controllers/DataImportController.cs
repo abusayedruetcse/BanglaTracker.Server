@@ -75,20 +75,20 @@ namespace BanglaTracker.API.Controllers
 
             var journeyDetails = new List<TrainJourneyDetail>
             {
-                new TrainJourneyDetail { Id = 1, TrainJourneyId = 1, StationId = 1, RouteStationOrder = 1, Distance = 0 }, //TODO: Add distance later
-                new TrainJourneyDetail { Id = 2, TrainJourneyId = 1, StationId = 2, RouteStationOrder = 2, Distance = 0 },
-                new TrainJourneyDetail { Id = 3, TrainJourneyId = 1, StationId = 3, RouteStationOrder = 3, Distance = 0 },
-                new TrainJourneyDetail { Id = 4, TrainJourneyId = 1, StationId = 4, RouteStationOrder = 4, Distance = 0 },
-                new TrainJourneyDetail { Id = 5, TrainJourneyId = 1, StationId = 5, RouteStationOrder = 5, Distance = 0 },
-                new TrainJourneyDetail { Id = 6, TrainJourneyId = 1, StationId = 6, RouteStationOrder = 6, Distance = 0 },
-                new TrainJourneyDetail { Id = 7, TrainJourneyId = 1, StationId = 7, RouteStationOrder = 7, Distance = 0 },
-                new TrainJourneyDetail { Id = 8, TrainJourneyId = 1, StationId = 8, RouteStationOrder = 8, Distance = 0 },
-                new TrainJourneyDetail { Id = 9, TrainJourneyId = 1, StationId = 9, RouteStationOrder = 9, Distance = 0 },
-                new TrainJourneyDetail { Id = 10, TrainJourneyId = 1, StationId = 10, RouteStationOrder = 10, Distance = 0 },
-                new TrainJourneyDetail { Id = 11, TrainJourneyId = 1, StationId = 11, RouteStationOrder = 11, Distance = 0 },
-                new TrainJourneyDetail { Id = 12, TrainJourneyId = 1, StationId = 12, RouteStationOrder = 12, Distance = 0 },
-                new TrainJourneyDetail { Id = 13, TrainJourneyId = 1, StationId = 13, RouteStationOrder = 13, Distance = 0 },
-                new TrainJourneyDetail { Id = 14, TrainJourneyId = 1, StationId = 14, RouteStationOrder = 14, Distance = 0 },
+                new TrainJourneyDetail { Id = 1, TrainJourneyId = 1, StationId = 1, RouteStationOrder = 0, Distance = 0 }, //TODO: Add distance later
+                new TrainJourneyDetail { Id = 2, TrainJourneyId = 1, StationId = 2, RouteStationOrder = 1, Distance = 0 },
+                new TrainJourneyDetail { Id = 3, TrainJourneyId = 1, StationId = 3, RouteStationOrder = 2, Distance = 0 },
+                new TrainJourneyDetail { Id = 4, TrainJourneyId = 1, StationId = 4, RouteStationOrder = 3, Distance = 0 },
+                new TrainJourneyDetail { Id = 5, TrainJourneyId = 1, StationId = 5, RouteStationOrder = 4, Distance = 0 },
+                new TrainJourneyDetail { Id = 6, TrainJourneyId = 1, StationId = 6, RouteStationOrder = 5, Distance = 0 },
+                new TrainJourneyDetail { Id = 7, TrainJourneyId = 1, StationId = 7, RouteStationOrder = 6, Distance = 0 },
+                new TrainJourneyDetail { Id = 8, TrainJourneyId = 1, StationId = 8, RouteStationOrder = 7, Distance = 0 },
+                new TrainJourneyDetail { Id = 9, TrainJourneyId = 1, StationId = 9, RouteStationOrder = 8, Distance = 0 },
+                new TrainJourneyDetail { Id = 10, TrainJourneyId = 1, StationId = 10, RouteStationOrder = 9, Distance = 0 },
+                new TrainJourneyDetail { Id = 11, TrainJourneyId = 1, StationId = 11, RouteStationOrder = 10, Distance = 0 },
+                new TrainJourneyDetail { Id = 12, TrainJourneyId = 1, StationId = 12, RouteStationOrder = 11, Distance = 0 },
+                new TrainJourneyDetail { Id = 13, TrainJourneyId = 1, StationId = 13, RouteStationOrder = 12, Distance = 0 },
+                new TrainJourneyDetail { Id = 14, TrainJourneyId = 1, StationId = 14, RouteStationOrder = 13, Distance = 0 },
             };
 
             await _dataImportService.AddJourneyDetailsAsync(journeyDetails);

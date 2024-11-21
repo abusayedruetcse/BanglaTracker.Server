@@ -1,5 +1,6 @@
 ﻿using BanglaTracker.BLL.DTOs;
 using BanglaTracker.BLL.Interfaces;
+using BanglaTracker.Core.Entities;
 using BanglaTracker.Core.Enums;
 using BanglaTracker.Core.Interfaces;
 using BanglaTracker.Core.Utils;
@@ -10,15 +11,18 @@ namespace BanglaTracker.BLL.Services
     {
         private readonly IRepository<TrainJourneyDto> _repository;
         private readonly ITrainJourneyRepository _trainJourneyRepository;
+        private readonly IRepository<TrainJourneyDetail> _trainJourneyDetailRepository;
         private readonly ILocationRepository _locationRepository;
 
         public TrainJourneyService(
             IRepository<TrainJourneyDto> repository,
             ITrainJourneyRepository trainJourneyRepository,
+            IRepository<TrainJourneyDetail> trainJourneyDetailRepository,
             ILocationRepository locationRepository)
         {
             _repository = repository;
             _trainJourneyRepository = trainJourneyRepository;
+            _trainJourneyDetailRepository = trainJourneyDetailRepository;
             _locationRepository = locationRepository;
         }
 
@@ -298,7 +302,7 @@ namespace BanglaTracker.BLL.Services
             int journeyId,
             int stationIndex)
         {
-            var journey = await _repository.GetByIdAsync(journeyId);
+            var journey = await _trainJourneyRepository.GetByIdAsync(journeyId);
 
             if (journey == null)
             {
@@ -312,11 +316,22 @@ namespace BanglaTracker.BLL.Services
             // Need to calculate the arrival time for the next station, before starting the journey from station.
             // EstimatedTime(1) = AverageBreakTime(0) + AverageTravelTime(1)
             // Here, ignoring AverageBreakTime(0) (to mitigate the risk)
-            journey.Stations[stationIndex + 1].EstimatedArrivalTime = journey.Stations[stationIndex + 1].AverageTravelTime;
+            //journey.Stations[stationIndex + 1].EstimatedArrivalTime = journey.Stations[stationIndex + 1].AverageTravelTime;
 
-            await _repository.UpdateAsync(journey);
+            var nextStation = (await _trainJourneyDetailRepository
+                .FindAsync(td => td.TrainJourneyId == journeyId 
+                    && td.RouteStationOrder == stationIndex + 1))
+                .FirstOrDefault();
+            if (nextStation != null)
+            {
+                nextStation.EstimatedArrivalTime = nextStation.AverageTravelTime;
+                await _trainJourneyDetailRepository.UpdateAsync(nextStation);
+                await _trainJourneyDetailRepository.SaveChangesAsync();
+            }
 
-            await _repository.SaveChangesAsync();
+            await _trainJourneyRepository.UpdateAsync(journey);
+
+            await _trainJourneyRepository.SaveChangesAsync();
         }
 
         private async Task UpdateJourneyStatusAsync(
