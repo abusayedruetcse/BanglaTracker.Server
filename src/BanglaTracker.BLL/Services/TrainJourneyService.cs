@@ -26,10 +26,15 @@ namespace BanglaTracker.BLL.Services
             _locationRepository = locationRepository;
         }
 
-        public async Task<TrainJourneyDto> GetJourneyAsync(int trainId)
+        public async Task<TrainJourney> GetJourneyAsync(int journeyId)
         {
             // Fetch the train journey data
-            return await _repository.GetByIdAsync(trainId);
+            var journey = await _trainJourneyRepository.GetByIdAsync(journeyId);
+            if (journey == null)
+            {
+                throw new KeyNotFoundException($"Journey not found with id: {journeyId}");
+            }
+            return journey;
         }
 
         public async Task<List<int>> GetJourneyIdsByStatusAsync(JourneyStatus journeyStatus)
@@ -38,9 +43,9 @@ namespace BanglaTracker.BLL.Services
             return await _trainJourneyRepository.FetchJourneyIdsByStatusAsync(journeyStatus);
         }
 
-        public async Task CalculateMetricsAsync(int trainId)
+        public async Task CalculateMetricsAsync(int journeyId)
         {
-            var journey = await GetJourneyAsync(trainId);
+            var journey = await GetJourneyAsync(journeyId);
 
             if (journey == null)
             {
@@ -48,17 +53,23 @@ namespace BanglaTracker.BLL.Services
                 return;
             }
 
-            if (IsAtDestination(journey))
+            // Load Journey in Dto
+            // Process JourneyDto
+            // Store JourneyDto in DB
+
+            var journeyDto = new TrainJourneyDto();
+
+            if (IsAtDestination(journeyDto))
             {
                 await UpdateJourneyStatusAsync(journey.Id, JourneyStatus.Completed);
             }
 
             // Update journey with currentlocation before starting progress.
-            await UpdateCurrentLocation(journey);
+            await UpdateCurrentLocation(journeyDto);
 
-            UpdateJourneyProgress(journey);
+            UpdateJourneyProgress(journeyDto);
 
-            await _repository.UpdateAsync(journey);
+            await _repository.UpdateAsync(journeyDto);
             
             await _repository.SaveChangesAsync();
         }

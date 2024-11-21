@@ -35,10 +35,10 @@ namespace BanglaTracker.API.Controllers
             return Ok(new { IsSuccess = true, message });
         }
 
-        [HttpGet("{trainId}")]
-        public async Task<ActionResult<TrainJourneyDto>> GetTrainJourney(int trainId)
+        [HttpGet("{journeyId}")]
+        public async Task<ActionResult<TrainJourneyDto>> GetTrainJourney(int journeyId)
         {
-            var journey = await _trainJourneyService.GetJourneyAsync(trainId);
+            var journey = await _trainJourneyService.GetJourneyAsync(journeyId);
             return Ok(journey);
         }
 
